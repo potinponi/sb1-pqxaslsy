@@ -1,0 +1,38 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+
+export default defineConfig({
+  plugins: [react()],
+  css: {
+    postcss: {
+      plugins: [
+        tailwindcss,
+        autoprefixer,
+      ],
+    },
+  },
+  build: {
+    outDir: 'dist/widget',
+    lib: {
+      entry: resolve(__dirname, 'src/widget.ts'),
+      name: 'ChatbotWidget',
+      fileName: (format) => `chatbot.${format}.js`
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom', '@supabase/supabase-js'],
+      output: {
+        format: 'umd',
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          '@supabase/supabase-js': 'supabase'
+        }
+      }
+    },
+    minify: 'esbuild',
+    sourcemap: false
+  }
+});
