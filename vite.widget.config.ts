@@ -15,15 +15,21 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist/widget',
+    outDir: 'dist',
     lib: {
       entry: resolve(__dirname, 'src/widget.ts'),
       name: 'ChatbotWidget',
-      fileName: (format) => `chatbot.${format}.js`
+      fileName: (format) => `widget/chatbot.${format}.js`
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'style.css') {
+            return 'widget/styles.css';
+          }
+          return assetInfo.name;
+        },
         format: 'umd',
         globals: {
           react: 'React',

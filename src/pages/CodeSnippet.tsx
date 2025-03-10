@@ -10,8 +10,8 @@ export function CodeSnippet() {
   const { user } = useAuth();
   const chatbotId = user?.id;
   const { flow, theme, chatbotName } = location.state || {};
-  const widgetUrl = 'https://chatti-bot.netlify.app/widget/chatbot.umd.js';
-  const widgetCssUrl = 'https://chatti-bot.netlify.app/widget/styles.css';
+  const widgetUrl = 'https://chatdash.netlify.app/widget/chatbot.umd.js';
+  const widgetCssUrl = 'https://chatdash.netlify.app/widget/styles.css';
 
   const smartProactiveScript = `<!-- Add this script after the widget initialization -->
 <script>
