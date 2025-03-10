@@ -10,8 +10,8 @@ export function CodeSnippet() {
   const { user } = useAuth();
   const chatbotId = user?.id;
   const { flow, theme, chatbotName } = location.state || {};
-  const widgetUrl = 'https://chatdash.netlify.app/widget/chatbot.umd.js';
-  const widgetCssUrl = 'https://chatdash.netlify.app/widget/styles.css';
+  const widgetUrl = 'https://unpkg.com/@chatdash/widget@latest/dist/widget/chatbot.umd.js';
+  const widgetCssUrl = 'https://unpkg.com/@chatdash/widget@latest/dist/widget/styles.css';
   const supabaseUrl = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
 
   const smartProactiveScript = `<!-- Add this script after the widget initialization -->
@@ -206,7 +206,7 @@ export function CodeSnippet() {
             <li>• Works offline-first with data sync</li>
             <li>• Compatible with all modern browsers</li>
             <li>• No jQuery required</li>
-            <li>• Served from Netlify's global CDN</li>
+            <li>• Served from unpkg's global CDN</li>
             <li>• Automatic error handling and retries</li>
             <li>• Customizable appearance and behavior</li>
             <li>• Mobile-responsive design</li>
