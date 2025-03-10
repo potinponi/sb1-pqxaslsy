@@ -10,9 +10,8 @@ export function CodeSnippet() {
   const { user } = useAuth();
   const chatbotId = user?.id;
   const { flow, theme, chatbotName } = location.state || {};
-  const widgetUrl = 'https://unpkg.com/@chatdash/widget@latest/dist/widget/chatbot.umd.js';
-  const widgetCssUrl = 'https://unpkg.com/@chatdash/widget@latest/dist/widget/styles.css';
-  const supabaseUrl = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
+  const widgetUrl = 'https://chatdash.netlify.app/widget/chatbot.umd.js';
+  const widgetCssUrl = 'https://chatdash.netlify.app/widget/styles.css';
 
   const smartProactiveScript = `<!-- Add this script after the widget initialization -->
 <script>
@@ -58,9 +57,9 @@ export function CodeSnippet() {
 <link rel="stylesheet" href="${widgetCssUrl}" />
 
 <!-- Required dependencies (load these before the widget) -->
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-<script src="${supabaseUrl}"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <!-- Chatbot widget script -->
 <script src="${widgetUrl}"></script>
@@ -206,7 +205,7 @@ export function CodeSnippet() {
             <li>• Works offline-first with data sync</li>
             <li>• Compatible with all modern browsers</li>
             <li>• No jQuery required</li>
-            <li>• Served from unpkg's global CDN</li>
+            <li>• Served from Netlify's global CDN</li>
             <li>• Automatic error handling and retries</li>
             <li>• Customizable appearance and behavior</li>
             <li>• Mobile-responsive design</li>

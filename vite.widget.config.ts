@@ -15,11 +15,11 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: 'dist/widget',
     lib: {
       entry: resolve(__dirname, 'src/widget.ts'),
       name: 'ChatbotWidget',
-      fileName: (format) => `widget/chatbot.${format}.js`
+      fileName: (format) => `chatbot.${format}.js`
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
