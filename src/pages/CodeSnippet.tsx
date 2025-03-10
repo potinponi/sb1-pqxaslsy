@@ -12,6 +12,7 @@ export function CodeSnippet() {
   const { flow, theme, chatbotName } = location.state || {};
   const widgetUrl = 'https://chatdash.netlify.app/widget/chatbot.umd.js';
   const widgetCssUrl = 'https://chatdash.netlify.app/widget/styles.css';
+  const supabaseUrl = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js';
 
   const smartProactiveScript = `<!-- Add this script after the widget initialization -->
 <script>
@@ -57,9 +58,9 @@ export function CodeSnippet() {
 <link rel="stylesheet" href="${widgetCssUrl}" />
 
 <!-- Required dependencies (load these before the widget) -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="${supabaseUrl}"></script>
 
 <!-- Chatbot widget script -->
 <script src="${widgetUrl}"></script>

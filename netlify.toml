@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build && npm run build:widget"
+  publish = "dist"
+
+[[redirects]]
+  from = "/widget/*"
+  to = "/widget/:splat"
+  status = 200
+
+[[headers]]
+  for = "/widget/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=31536000"
