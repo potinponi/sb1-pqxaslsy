@@ -12,6 +12,12 @@
   to = "/widget/:splat"
   status = 200
 
+# API endpoint for secure configuration
+[[redirects]]
+  from = "/api/config/*"
+  to = "/.netlify/functions/get-config/:splat"
+  status = 200
+
 # Redirects for SPA routing
 [[redirects]]
   from = "/*"
@@ -32,7 +38,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
+    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://chatdash.netlify.app;"
 
 # Environment variables configuration
 [build.environment]

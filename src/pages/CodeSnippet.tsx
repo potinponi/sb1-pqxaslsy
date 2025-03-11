@@ -3,7 +3,7 @@ import { Copy, Check } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
-export function CodeSnippet() {
+export default function CodeSnippet() {
   const [copied, setCopied] = useState<'main' | 'smart' | 'theme' | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ export function CodeSnippet() {
   const { flow, theme, chatbotName } = location.state || {};
   const widgetUrl = 'https://chatdash.netlify.app/widget/chatbot.umd.js';
   const widgetCssUrl = 'https://chatdash.netlify.app/widget/styles.css';
-  const supabaseUrl = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
 
   const smartProactiveScript = `<!-- Add this script after the widget initialization -->
 <script>
@@ -55,30 +54,26 @@ export function CodeSnippet() {
   }, [flow, chatbotId, navigate]);
 
   const snippet = `<!-- Add the chatbot widget to your website -->
-<link rel="stylesheet" href="${widgetCssUrl}" />
+<link rel="stylesheet" href="${widgetCssUrl}" type="text/css">
 
 <!-- Required dependencies (load these before the widget) -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="${supabaseUrl}"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin></script>
 
 <!-- Chatbot widget script -->
-<script src="${widgetUrl}"></script>
+<script src="${widgetUrl}" crossorigin></script>
 
-<!-- Initialize the widget -->
 <script>
-  window.addEventListener('load', function() {
-    // Initialize the widget with your configuration
-    window.ChatbotWidget.init({
-      id: '${chatbotId}'
-    });
-
-    // Optional: Set page context for smart proactive messages
-    window.ChatbotWidget.setPageContext({
-      url: window.location.pathname,
-      productName: document.querySelector('h1')?.textContent,
-      categoryName: document.querySelector('meta[property="og:type"]')?.getAttribute('content')
-    });
+  window.addEventListener('load', async () => {
+    try {
+      // Initialize the widget with your configuration
+      await window.ChatbotWidget.init({
+        id: '${chatbotId}' // Your chatbot ID
+      });
+    } catch (error) {
+      console.error('Failed to initialize chat widget:', error);
+    }
   });
 </script>`;
 
@@ -126,7 +121,8 @@ export function CodeSnippet() {
         <ol className="list-decimal list-inside space-y-2 text-gray-300">
           <li>Copy the entire widget code snippet</li>
           <li>Add the stylesheet link to your HTML <code>&lt;head&gt;</code> section</li>
-          <li>Add the required dependencies and widget script just before the closing <code>&lt;/body&gt;</code> tag</li>
+          <li>Add the initialization script just before the closing <code>&lt;/body&gt;</code> tag</li>
+          <li>The script will automatically load required dependencies if they're not already present</li>
           <li>The chat widget will automatically appear in the bottom right corner</li>
           <li>Customize the theme settings to match your website's design</li>
         </ol>
@@ -197,7 +193,8 @@ export function CodeSnippet() {
           <h3 className="text-lg font-medium text-gray-100 mb-2">Important Notes</h3>
           <ul className="space-y-2 text-gray-300">
             <li>• Lightweight and optimized</li>
-            <li>• Requires React, ReactDOM, and Supabase</li>
+            <li>• Automatically handles dependencies</li>
+            <li>• Works with existing React installations</li>
             <li>• Automatically syncs with your chatbot configuration</li>
             <li>• Smart proactive messages support</li>
             <li>• Real-time lead capture</li>
@@ -294,3 +291,5 @@ export function CodeSnippet() {
     </div>
   );
 }
+
+export { CodeSnippet }
