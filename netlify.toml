@@ -4,7 +4,13 @@
   # Directory to publish (relative to root of your repo)
   publish = "dist"
   # Default build command
-  command = "npm run build"
+  command = "npm run build && npm run build:widget"
+
+# Exclude widget files from SPA redirect
+[[redirects]]
+  from = "/widget/*"
+  to = "/widget/:splat"
+  status = 200
 
 # Redirects for SPA routing
 [[redirects]]
@@ -13,6 +19,12 @@
   status = 200
 
 # Headers to enable SPA and security
+[[headers]]
+  for = "/widget/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/javascript"
+
 [[headers]]
   for = "/*"
   [headers.values]
