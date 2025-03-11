@@ -2,15 +2,9 @@
 
 [build]
   # Directory to publish (relative to root of your repo)
-  publish = "dist"
+  publish = "dist/public"
   # Default build command
   command = "npm run build && npm run build:widget"
-
-# Exclude widget files from SPA redirect
-[[redirects]]
-  from = "/widget/*"
-  to = "/widget/:splat"
-  status = 200
 
 # API endpoint for secure configuration
 [[redirects]]
@@ -18,22 +12,12 @@
   to = "/.netlify/functions/get-config/:splat"
   status = 200
 
-# Redirects for SPA routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 # Headers to enable SPA and security
-[[headers]]
-  for = "/widget/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Content-Type = "application/javascript"
-
 [[headers]]
   for = "/*"
   [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "application/javascript"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
