@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:widget": "vite build --config vite.widget.config.ts",
     "upload:widget": "tsx scripts/upload-widget.ts",
     "build:widget": "vite build --config vite.widget.config.ts",
     "lint": "eslint .",

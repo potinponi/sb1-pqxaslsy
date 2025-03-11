@@ -1,5 +1,3 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
@@ -12,6 +10,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
   },
   css: {
+    extract: true,
     postcss: {
       plugins: [
         tailwindcss,
@@ -22,15 +21,14 @@ export default defineConfig({
   build: {
     outDir: 'dist/widget',
     lib: {
-      entry: resolve(__dirname, 'src/widget.ts'),
+      entry: resolve(__dirname, 'src/widget.tsx'),
       name: 'ChatbotWidget',
       fileName: (format) => `chatbot.${format}.js`,
-      formats: ['umd']
+      formats: ['es', 'umd']
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
-        name: 'ChatbotWidget',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
             return 'widget/styles.css';
@@ -45,6 +43,6 @@ export default defineConfig({
       }
     },
     minify: 'esbuild',
-    sourcemap: false
+    sourcemap: true
   }
 });
