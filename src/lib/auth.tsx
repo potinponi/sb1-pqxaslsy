@@ -20,32 +20,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    if (!supabase) {
-      console.warn('Supabase client not initialized');
-      setError(new Error('Supabase client not initialized'));
-      setLoading(false);
-      return;
-    }
-
     async function getInitialSession() {
       try {
         setLoading(true);
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          if (sessionError) {
-            console.error('Session error:', sessionError);
-            console.error('Session error:', sessionError);
-            throw sessionError;
-          }
-          console.info('Auth state:', session ? 'Authenticated' : 'Not authenticated');
-          setUser(session?.user ?? null);
-          setError(null);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && mounted) {
+          setUser(session.user);
         }
       } catch (err) {
         if (mounted) {
           console.error('Auth error:', err);
-          setError(err instanceof Error ? err : new Error('Authentication failed'));
+          setError(err as Error);
           setUser(null);
         }
       } finally {
@@ -57,11 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getInitialSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.info('Auth state change:', event, session ? 'Authenticated' : 'Not authenticated');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (mounted) {
         setUser(session?.user ?? null);
-        setError(null);
       }
     });
 
