@@ -1,0 +1,36 @@
+# Netlify configuration file
+
+[build]
+  # Directory to publish (relative to root of your repo)
+  publish = "dist"
+  # Default build command
+  command = "npm run build"
+
+# Redirects for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers to enable SPA and security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
+
+# Environment variables configuration
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+
+# Production context
+[context.production]
+  command = "npm run build"
+
+# Deploy Preview context
+[context.deploy-preview]
+  command = "npm run build"
