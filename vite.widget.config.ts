@@ -24,14 +24,14 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/widget.tsx'),
       name: 'ChatbotWidget',
-      fileName: 'chatbot',
+      fileName: (format) => `chatbot.${format}`,
       formats: ['umd']
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css') {
+          if (assetInfo.name === 'style.css' || assetInfo.name === 'widget.css') {
             return 'widget.css';
           }
           return assetInfo.name;

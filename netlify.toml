@@ -8,16 +8,33 @@
 
 # API endpoint for secure configuration
 [[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
   from = "/api/config/*"
   to = "/.netlify/functions/get-config/:splat"
   status = 200
 
 # Headers to enable SPA and security
 [[headers]]
+  for = "/chatbot.umd.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/widget.css"
+  [headers.values]
+    Content-Type = "text/css"
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
-    Content-Type = "application/javascript"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
