@@ -11,7 +11,7 @@ export default function CodeSnippet() {
   const chatbotId = user?.id;
   const { flow, theme, chatbotName } = location.state || {};
   const widgetUrl = 'https://chatdash.netlify.app/widget/chatbot.umd.js';
-  const widgetCssUrl = 'https://chatdash.netlify.app/widget/styles.css';
+  const widgetCssUrl = 'https://chatdash.netlify.app/widget/widget.css';
 
   const smartProactiveScript = `<!-- Add this script after the widget initialization -->
 <script>
@@ -56,17 +56,31 @@ export default function CodeSnippet() {
   const snippet = `<!-- Add the chatbot widget to your website -->
 <link rel="stylesheet" href="${widgetCssUrl}" type="text/css">
 
-<!-- Required dependencies (load these before the widget) -->
+<!-- Required dependencies -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin></script>
 
-<!-- Chatbot widget script -->
-<script src="${widgetUrl}" crossorigin></script>
+<!-- Error checking -->
+<script>
+  function checkWidgetLoaded() {
+    if (!window.ChatbotWidget) {
+      console.error('ChatbotWidget failed to load. Please check script inclusion and browser console for errors.');
+    }
+  }
+</script>
 
+<!-- Chatbot widget script -->
+<script src="${widgetUrl}" crossorigin onload="setTimeout(checkWidgetLoaded, 1000)"></script>
+
+<!-- Initialization -->
 <script>
   window.addEventListener('load', async () => {
     try {
+      if (!window.ChatbotWidget) {
+        console.error('ChatbotWidget not loaded properly');
+        return;
+      }
       // Initialize the widget with your configuration
       await window.ChatbotWidget.init({
         id: '${chatbotId}' // Your chatbot ID

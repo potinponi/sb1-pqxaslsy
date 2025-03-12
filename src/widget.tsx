@@ -9,6 +9,10 @@ export interface WidgetConfig {
   id: string;
 }
 
+interface WidgetConfig {
+  id: string;
+}
+
 const init = async ({ id }: WidgetConfig) => {
   // Initialize Supabase client
   try {
@@ -108,4 +112,7 @@ const init = async ({ id }: WidgetConfig) => {
 // Export for UMD build
 export const ChatbotWidget = { init };
 
-// Expose to window
+// Explicitly expose to window
+if (typeof window !== 'undefined') {
+  (window as any).ChatbotWidget = ChatbotWidget;
+}
