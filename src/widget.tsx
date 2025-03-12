@@ -5,10 +5,6 @@ import { supabase } from './lib/supabase';
 import type { Theme, Flow } from './types';
 import './widget.css';
 
-export interface WidgetConfig {
-  id: string;
-}
-
 interface WidgetConfig {
   id: string;
 }
@@ -109,10 +105,5 @@ const init = async ({ id }: WidgetConfig) => {
   }
 };
 
-// Export for UMD build
-export const ChatbotWidget = { init };
-
-// Explicitly expose to window
-if (typeof window !== 'undefined') {
-  (window as any).ChatbotWidget = ChatbotWidget;
-}
+// Export as a global UMD module
+export default { init };

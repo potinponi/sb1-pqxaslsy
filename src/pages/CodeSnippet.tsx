@@ -56,33 +56,24 @@ export default function CodeSnippet() {
   const snippet = `<!-- Add the chatbot widget to your website -->
 <link rel="stylesheet" href="${widgetCssUrl}" type="text/css">
 
-<!-- Required dependencies -->
+<!-- Required dependencies (must be loaded before widget) -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin></script>
 
-<!-- Error checking -->
-<script>
-  function checkWidgetLoaded() {
-    if (!window.ChatbotWidget) {
-      console.error('ChatbotWidget failed to load. Please check script inclusion and browser console for errors.');
-    }
-  }
-</script>
 
-<!-- Chatbot widget script -->
-<script src="${widgetUrl}" crossorigin onload="setTimeout(checkWidgetLoaded, 1000)"></script>
+<script src="${widgetUrl}" crossorigin></script>
 
-<!-- Initialization -->
+<!-- Initialize widget -->
 <script>
   window.addEventListener('load', async () => {
     try {
-      if (!window.ChatbotWidget) {
-        console.error('ChatbotWidget not loaded properly');
+      if (!window.ChatWidget) {
+        console.error('ChatWidget not loaded properly');
         return;
       }
-      // Initialize the widget with your configuration
-      await window.ChatbotWidget.init({
+      
+      await window.ChatWidget.init({
         id: '${chatbotId}' // Your chatbot ID
       });
     } catch (error) {
