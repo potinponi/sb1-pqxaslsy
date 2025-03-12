@@ -10,7 +10,6 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
   },
   css: {
-    extract: true,
     postcss: {
       plugins: [
         tailwindcss,
@@ -20,23 +19,24 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist/public/widget',
-    emptyOutDir: false,
+    emptyOutDir: true,
     lib: {
       entry: resolve(__dirname, 'src/widget.tsx'),
       name: 'ChatbotWidget',
-      fileName: (format) => `chatbot.${format}.js`,
+      fileName: (format) => `chatbot.${format}`,
       formats: ['umd']
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
-        name: 'ChatbotWidget',
+        preserveModules: false,
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css') {
+          if (assetInfo.name === 'style.css' || assetInfo.name === 'widget.css') {
             return 'widget.css';
           }
           return assetInfo.name;
         },
+        inlineDynamicImports: true,
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
@@ -44,7 +44,7 @@ export default defineConfig({
         }
       }
     },
-    minify: false, // Temporarily disable minification for debugging
+    minify: 'esbuild',
     sourcemap: true
   }
 });
