@@ -105,5 +105,12 @@ const init = async ({ id }: WidgetConfig) => {
   }
 };
 
-// Export as a global UMD module
-export default { init };
+// Export for UMD build
+export const ChatbotWidget = { init };
+
+// Explicitly expose to window
+if (typeof window !== 'undefined') {
+  (window as any).ChatbotWidget = ChatbotWidget;
+}
+
+export default ChatbotWidget;

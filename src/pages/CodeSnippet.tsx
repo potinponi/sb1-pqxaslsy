@@ -68,12 +68,12 @@ export default function CodeSnippet() {
 <script>
   window.addEventListener('load', async () => {
     try {
-      if (!window.ChatWidget) {
-        console.error('ChatWidget not loaded properly');
+      if (!window.ChatbotWidget) {
+        console.error('ChatbotWidget not loaded properly');
         return;
       }
       
-      await window.ChatWidget.init({
+      await window.ChatbotWidget.init({
         id: '${chatbotId}' // Your chatbot ID
       });
     } catch (error) {
