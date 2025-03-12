@@ -19,7 +19,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist/public',
+    outDir: 'dist/public/widget',
     emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, 'src/widget.tsx'),
