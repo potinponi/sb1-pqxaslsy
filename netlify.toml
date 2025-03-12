@@ -1,18 +1,12 @@
 # Netlify configuration file
 
 [build]
-  publish = "dist"
+  publish = "public"
   command = "npm run build"
 
 [[redirects]]
   from = "/widget/*"
   to = "/widget/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
   status = 200
   force = true
 

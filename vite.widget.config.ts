@@ -31,7 +31,7 @@ export default defineConfig({
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css' || assetInfo.name === 'widget.css') {
+          if (assetInfo.name === 'style.css') {
             return 'widget.css';
           }
           return assetInfo.name;
