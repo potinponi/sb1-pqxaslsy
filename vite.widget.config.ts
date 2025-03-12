@@ -20,16 +20,16 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist/public',
+    emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, 'src/widget.tsx'),
       name: 'ChatbotWidget',
-      fileName: (format) => `chatbot.${format}.js`,
+      fileName: 'chatbot',
       formats: ['umd']
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
-        format: 'umd',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
             return 'widget.css';
