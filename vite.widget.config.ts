@@ -24,12 +24,13 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/widget.tsx'),
       name: 'ChatbotWidget',
-      fileName: (format) => `chatbot.${format}`,
+      fileName: (format) => `chatbot.${format}.js`,
       formats: ['umd']
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@supabase/supabase-js'],
       output: {
+        name: 'ChatbotWidget',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
             return 'widget.css';
@@ -39,11 +40,11 @@ export default defineConfig({
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
-          '@supabase/supabase-js': 'supabase'
+          '@supabase/supabase-js': 'supabase',
         }
       }
     },
-    minify: 'esbuild',
+    minify: false, // Temporarily disable minification for debugging
     sourcemap: true
   }
 });

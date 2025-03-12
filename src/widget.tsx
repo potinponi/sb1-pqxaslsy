@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
-import { ChatWidget } from './components/ChatWidget/ChatWidget';
+import { ChatWidget as ChatWidgetComponent } from './components/ChatWidget/ChatWidget';
 import { createRoot } from 'react-dom/client';
 import { supabase } from './lib/supabase';
 import type { Theme, Flow } from './types';
 import './widget.css';
+
+export { ChatWidget as ChatWidgetComponent } from './components/ChatWidget/ChatWidget';
 
 interface WidgetConfig {
   id: string;
@@ -86,7 +88,7 @@ const init = async ({ id }: WidgetConfig) => {
     container.style.fontFamily = fontFamily;
 
     root.render(
-      <ChatWidget
+      <ChatWidgetComponent
         chatbotId={id}
         theme={widgetConfig?.theme}
         previewFlow={widgetConfig?.flow}

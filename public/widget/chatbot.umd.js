@@ -22,8 +22,9 @@
 
       // Initialize widget
       const root = ReactDOM.createRoot(container);
-      root.render(React.createElement(ChatWidget, { chatbotId: id }));
+      root.render(React.createElement(ChatWidgetComponent, { chatbotId: id }));
 
+      // Return cleanup function
       return () => {
         root.unmount();
         container.remove();
@@ -35,5 +36,13 @@
     }
   };
 
+  // Export for UMD build
   exports.init = init;
+
+  // Explicitly expose to window
+  if (typeof window !== 'undefined') {
+    window.ChatbotWidget = { init };
+  }
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 }));
