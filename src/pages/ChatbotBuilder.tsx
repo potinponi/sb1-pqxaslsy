@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth';
 import type { Flow, Theme, Option } from '../types';
 import { BasicSettings } from './ChatbotBuilder/BasicSettings';
 import { FlowBuilder } from './ChatbotBuilder/FlowBuilder';
+import { FlowBuilder2 } from './ChatbotBuilder/FlowBuilder2';
 import { ProactiveMessages } from './ChatbotBuilder/ProactiveMessages';
 
 export default function ChatbotBuilder() {
@@ -13,7 +14,7 @@ export default function ChatbotBuilder() {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'flow' | 'proactive'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'flow' | 'flow2' | 'proactive'>('basic');
   const [chatbotName, setChatbotName] = useState<string>('Default Chatbot');
   const [showEndScreen, setShowEndScreen] = useState(false);
   const [proactiveMessages, setProactiveMessages] = useState<{
@@ -186,6 +187,17 @@ export default function ChatbotBuilder() {
                 <span>Flow Builder</span>
               </button>
               <button
+                onClick={() => setActiveTab('flow2')}
+                className={`flex items-center space-x-2 px-4 h-10 text-sm font-medium transition-colors border-b-2 -mb-[1px]
+                  ${activeTab === 'flow2'
+                    ? 'border-brand text-brand'
+                    : 'border-transparent text-gray-400 hover:text-gray-300'
+                  }`}
+              >
+                <MessageSquarePlus className="w-4 h-4" />
+                <span>Flow Builder 2.0</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('proactive')}
                 className={`flex items-center space-x-2 px-4 h-10 text-sm font-medium transition-colors border-b-2 -mb-[1px]
                   ${activeTab === 'proactive'
@@ -272,6 +284,19 @@ export default function ChatbotBuilder() {
             setShowEndScreen={setShowEndScreen}
             proactiveMessages={proactiveMessages}
             setProactiveMessages={setProactiveMessages}
+            options={options}
+            setOptions={setOptions}
+            theme={theme}
+            chatbotName={chatbotName}
+          />
+        ) : activeTab === 'flow2' ? (
+          <FlowBuilder2
+            welcomeMessage={welcomeMessage}
+            setWelcomeMessage={setWelcomeMessage}
+            endMessage={endMessage}
+            setEndMessage={setEndMessage}
+            showEndScreen={showEndScreen}
+            setShowEndScreen={setShowEndScreen}
             options={options}
             setOptions={setOptions}
             theme={theme}

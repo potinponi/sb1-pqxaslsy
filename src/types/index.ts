@@ -58,6 +58,15 @@ export interface Lead {
 }
 
 /**
+ * Represents a node position in the flow builder
+ */
+export interface NodePosition {
+  id: string;
+  x: number;
+  y: number;
+}
+
+/**
  * Represents user feedback collected through the end screen
  */
 export interface Feedback {
