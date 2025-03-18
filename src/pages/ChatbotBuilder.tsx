@@ -3,6 +3,7 @@ import { Code, Save, Loader2, Settings, MessageSquarePlus, BellRing } from 'luci
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
+import { generateWidgetBundle } from '../lib/widget';
 import type { Flow, Theme, Option } from '../types';
 import { BasicSettings } from './ChatbotBuilder/BasicSettings';
 import { FlowBuilder } from './ChatbotBuilder/FlowBuilder';
@@ -87,6 +88,18 @@ export default function ChatbotBuilder() {
   const handleSave = async () => {
     setSaving(true);
     setError(null);
+    const chatbotId = 'a54a2bd1-cf6a-4af7-8435-c256c10794e7';
+    
+    // Create flow object for widget generation
+    const flow = {
+      welcomeMessage,
+      endMessage,
+      showEndScreen,
+      proactiveMessages,
+      options
+    };
+    
+    const widgetBundle = generateWidgetBundle(user?.id || '', theme, flow);
     
     try {
       localStorage.setItem('chatbot-builder', JSON.stringify({
@@ -138,13 +151,38 @@ export default function ChatbotBuilder() {
         throw new Error(flowError.message);
       }
 
+      // Create customer folder if it doesn't exist
+      const folderPath = `${chatbotId}/`;
+      const { data: existingFiles } = await supabase.storage
+        .from('widget-files')
+        .list(folderPath);
+
+      // Delete old widget file if it exists
+      if (existingFiles?.some(file => file.name === 'widget')) {
+        const { error: deleteError } = await supabase.storage
+          .from('widget-files')
+          .remove([`${folderPath}widget`]);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Save widget files to storage
+      const { error: widgetError } = await supabase.storage
+        .from('widget-files')
+        .upload(`${folderPath}widget`, widgetBundle, {
+          contentType: 'application/javascript',
+          upsert: true
+        });
+
+      if (widgetError) throw widgetError;
+
       console.log('Chatbot configuration saved successfully');
       
       // Get the widget URL
       const { data: publicUrl } = supabase
         .storage
-        .from('widgets')
-        .getPublicUrl('chatbot.js');
+        .from('widget-files')
+        .getPublicUrl(`${chatbotId}/widget`);
 
       console.log('Widget URL:', publicUrl.publicUrl);
       setError(null);

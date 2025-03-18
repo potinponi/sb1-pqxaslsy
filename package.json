@@ -6,15 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:all": "npm run build && npm run build:widget",
-    "build:widget": "vite build --config vite.widget.config.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
-    "react-draggable": "^4.4.6",
     "react-draggable": "^4.4.6",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.3", 

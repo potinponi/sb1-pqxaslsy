@@ -5,17 +5,32 @@ import { supabase } from './lib/supabase';
 import type { Theme, Flow } from './types';
 import './widget.css';
 
-// Export the ChatWidget component for bundling
-export { ChatWidget };
+// Check if dependencies are loaded
+const checkDependencies = () => {
+  const missing = [];
+  if (typeof React === 'undefined') missing.push('React');
+  if (typeof ReactDOM === 'undefined') missing.push('ReactDOM');
+  if (typeof supabase === 'undefined') missing.push('@supabase/supabase-js');
+  return missing;
+};
 
 interface WidgetConfig {
   id: string;
 }
 
 const init = async ({ id }: WidgetConfig) => {
+  // Check dependencies first
+  const missingDeps = checkDependencies();
+  if (missingDeps.length > 0) {
+    throw new Error(
+      `Required dependencies not loaded: ${missingDeps.join(', ')}. ` +
+      'Make sure to include these scripts before the widget.'
+    );
+  }
+
   // Initialize Supabase client
   try {
-    // Fetch configuration from secure endpoint
+    // First fetch Supabase credentials securely
     const response = await fetch(`https://chatdash.netlify.app/api/config/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch configuration');
@@ -25,7 +40,7 @@ const init = async ({ id }: WidgetConfig) => {
     if (!config.supabaseUrl) {
       throw new Error('Invalid configuration');
     }
-    
+
     const client = supabase.createClient(config.supabaseUrl, config.supabaseKey);
     
     // Fetch widget configuration
@@ -104,12 +119,17 @@ const init = async ({ id }: WidgetConfig) => {
     };
   } catch (error) {
     console.error('Failed to initialize widget:', error);
-    throw error;
+    // Rethrow with more helpful message
+    throw new Error(
+      `Failed to initialize widget: ${error.message}. ` +
+      'Check your chatbot ID and make sure the configuration endpoint is accessible.'
+    );
   }
 };
 
 // Export for UMD build
-export const ChatbotWidget = { init, ChatWidget };
+const ChatbotWidget = { init };
+export { ChatbotWidget };
 
 // Explicitly expose to window
 if (typeof window !== 'undefined') {

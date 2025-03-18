@@ -81,11 +81,9 @@ export function ChatForm({ question, onSubmit, onSkip, theme }: ChatFormProps) {
             className="w-full px-3 py-2 rounded-xl 
               text-gray-100 placeholder-gray-500 
               focus:outline-none focus:ring-1
-              disabled:opacity-50"
-            style={{
-              backgroundColor: 'var(--input-color)',
-              '--tw-ring-color': 'var(--primary-color)'
-            }}
+              disabled:opacity-50
+              focus:ring-brand"
+            style={{ backgroundColor: 'var(--input-color)' }}
             placeholder={`Type your ${
               question.type === 'email' ? 'email' : 
               question.type === 'phone' ? 'phone number' : 
