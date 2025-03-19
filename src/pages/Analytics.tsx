@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Loader2, Users, PhoneCall, Mail, MessageSquare } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart, Pie, Cell,
-  Legend
-} from 'recharts';
-import type { Lead, Feedback } from '../types';
+import type { Lead, Feedback, ChatInteraction } from '../types';
+import { StatsCards } from '../components/Analytics/StatsCards';
+import { ChatInteractions } from '../components/Analytics/ChatInteractions';
+import { LocationStats } from '../components/Analytics/LocationStats';
+import { LeadAcquisition } from '../components/Analytics/LeadAcquisition';
+import { UserSatisfaction } from '../components/Analytics/UserSatisfaction';
+import { FlowDistribution } from '../components/Analytics/FlowDistribution';
+import { DateFilter } from '../components/Analytics/DateFilter';
 
 type DateFilter = 'today' | '7days' | '14days' | '30days' | 'all';
 
@@ -37,6 +33,7 @@ export function Analytics() {
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [interactions, setInteractions] = useState<ChatInteraction[]>([]);
   const { user } = useAuth();
   const [dateFilter, setDateFilter] = useState<DateFilter>('30days');
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
@@ -45,14 +42,6 @@ export function Analytics() {
     cities: { name: string; count: number }[];
     countries: { name: string; count: number }[];
   }>({ cities: [], countries: [] });
-
-  const dateFilters: { value: DateFilter; label: string }[] = [
-    { value: 'today', label: 'Today' },
-    { value: '7days', label: 'Last 7 days' },
-    { value: '14days', label: 'Last 14 days' },
-    { value: '30days', label: 'Last 30 days' },
-    { value: 'all', label: 'All time' },
-  ];
 
   const getDateRange = (filter: DateFilter) => {
     const now = new Date();
@@ -83,7 +72,28 @@ export function Analytics() {
   useEffect(() => {
     fetchLeads();
     fetchFeedback();
+    fetchInteractions();
   }, [dateFilter]);
+
+  const fetchInteractions = async () => {
+    try {
+      let query = supabase
+        .from('chat_interactions')
+        .select('*')
+        .eq('chatbot_id', user?.id);
+
+      const dateRange = getDateRange(dateFilter);
+      if (dateRange) {
+        query = query.gte('created_at', dateRange);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) throw error;
+      setInteractions(data || []);
+    } catch (error) {
+      console.error('Error fetching interactions:', error);
+    }
+  };
 
   const fetchFeedback = async () => {
     try {
@@ -230,6 +240,12 @@ export function Analytics() {
   const totalLeads = leads.length;
   const conversionRate = Math.round((totalLeads / ESTIMATED_TOTAL_VIEWS) * 100);
   
+  // Calculate interaction stats
+  const totalOpens = interactions.filter(i => i.type === 'open').length;
+  const uniqueSessions = new Set(interactions.map(i => i.session_id)).size;
+  const conversionsFromChat = interactions.filter(i => i.converted).length;
+  const chatConversionRate = totalOpens > 0 ? Math.round((conversionsFromChat / totalOpens) * 100) : 0;
+  
   const uniqueEmails = new Set(leads.map(lead => lead.email)).size;
   const uniquePhones = new Set(leads.map(lead => lead.phone).filter(Boolean)).size;
 
@@ -244,228 +260,34 @@ export function Analytics() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-100">Analytics</h1>
-        <div className="flex items-center space-x-2">
-          <Calendar className="w-5 h-5 text-gray-400" />
-          {dateFilters.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setDateFilter(value)}
-              className={`px-3 py-1.5 rounded-md text-sm whitespace-nowrap transition-colors
-                ${dateFilter === value
-                  ? 'bg-brand text-black'
-                  : 'bg-dark-700 text-gray-400 hover:text-brand hover:bg-dark-600'
-                }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <DateFilter dateFilter={dateFilter} setDateFilter={setDateFilter} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Total Leads</h3>
-              <p className="text-3xl font-bold text-gray-100">{totalLeads}</p>
-            </div>
-            <Users className="w-8 h-8 text-brand" />
-          </div>
-        </div>
-        
-        <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Unique Emails</h3>
-              <p className="text-3xl font-bold text-gray-100">{uniqueEmails}</p>
-            </div>
-            <Mail className="w-8 h-8 text-brand" />
-          </div>
-        </div>
-        
-        <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Unique Phone Numbers</h3>
-              <p className="text-3xl font-bold text-gray-100">{uniquePhones}</p>
-            </div>
-            <PhoneCall className="w-8 h-8 text-brand" />
-          </div>
-        </div>
-        
-        <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Conversion Rate</h3>
-              <p className="text-3xl font-bold text-gray-100">{conversionRate}%</p>
-            </div>
-            <MessageSquare className="w-8 h-8 text-brand" />
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        totalLeads={totalLeads}
+        uniqueEmails={uniqueEmails}
+        uniquePhones={uniquePhones}
+        conversionRate={conversionRate}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Location Stats */}
-        <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <h2 className="text-lg font-medium text-gray-100 mb-4">Top Locations</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Top Cities</h3>
-              <div className="space-y-2">
-                {locationStats.cities.map(({ name, count }) => (
-                  <div key={name} className="flex items-center justify-between">
-                    <span className="text-gray-300">{name}</span>
-                    <span className="text-brand font-medium">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Top Countries</h3>
-              <div className="space-y-2">
-                {locationStats.countries.map(({ name, count }) => (
-                  <div key={name} className="flex items-center justify-between">
-                    <span className="text-gray-300">{name}</span>
-                    <span className="text-brand font-medium">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="lg:col-span-2 bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <h2 className="text-lg font-medium text-gray-100 mb-4">Lead Acquisition</h2>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailyStats}>
-                <defs>
-                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a7e154" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#a7e154" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis
-                  dataKey="date"
-                  stroke="#9CA3AF"
-                  tick={{ fill: '#9CA3AF' }}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                />
-                <YAxis stroke="#9CA3AF" tick={{ fill: '#9CA3AF' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid #374151',
-                    borderRadius: '0.5rem',
-                  }}
-                  labelStyle={{ color: '#9CA3AF' }}
-                  itemStyle={{ color: '#a7e154' }}
-                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#a7e154"
-                  fillOpacity={1}
-                  fill="url(#colorCount)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Feedback Stats */}
-        <div className="lg:col-span-3 bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <h2 className="text-lg font-medium text-gray-100 mb-4">User Satisfaction</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 bg-dark-700 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Total Feedback</h3>
-              <p className="text-3xl font-bold text-gray-100">{totalFeedback}</p>
-            </div>
-            <div className="p-4 bg-dark-700 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Satisfied Users</h3>
-              <p className="text-3xl font-bold text-brand">{satisfiedCount}</p>
-            </div>
-            <div className="p-4 bg-dark-700 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-400 mb-2">Satisfaction Rate</h3>
-              <p className="text-3xl font-bold text-gray-100">{satisfactionRate}%</p>
-            </div>
-          </div>
-          
-          <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-400 mb-4">Recent Feedback</h3>
-            <div className="space-y-2">
-              {feedback.slice(0, 5).map(item => (
-                <div 
-                  key={item.id}
-                  className="flex items-center justify-between p-3 bg-dark-700 rounded-lg"
-                >
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className={`w-2 h-2 rounded-full ${
-                        item.satisfied ? 'bg-green-500' : 'bg-red-500'
-                      }`}
-                    />
-                    <span className="text-gray-300">
-                      {item.satisfied ? 'Satisfied' : 'Not Satisfied'}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-400">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
-          <h2 className="text-lg font-medium text-gray-100 mb-4">Flow Distribution</h2>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={flowStats}
-                  dataKey="count"
-                  nameKey="option"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  innerRadius={50}
-                  label={({ percentage }) => `${percentage}%`}
-                >
-                  {flowStats.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Legend
-                  layout="vertical"
-                  align="center"
-                  verticalAlign="top"
-                  wrapperStyle={{
-                    paddingBottom: '20px'
-                  }}
-                  formatter={(value) => (
-                    <span className="text-sm text-gray-100">{value}</span>
-                  )}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid #374151',
-                    borderRadius: '0.5rem',
-                  }}
-                  formatter={(value, name) => [
-                    `${value} leads (${flowStats.find(stat => stat.option === name)?.percentage}%)`
-                  ]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <ChatInteractions
+          interactions={interactions}
+          totalOpens={totalOpens}
+        />
+        <LocationStats
+          cities={locationStats.cities}
+          countries={locationStats.countries}
+        />
+        <LeadAcquisition dailyStats={dailyStats} />
+        <UserSatisfaction
+          feedback={feedback}
+          totalFeedback={totalFeedback}
+          satisfiedCount={satisfiedCount}
+          satisfactionRate={satisfactionRate}
+        />
+        <FlowDistribution flowStats={flowStats} />
       </div>
     </div>
   );

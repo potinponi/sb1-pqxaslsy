@@ -6,16 +6,16 @@ import { useAuth } from '../lib/auth';
 import { generateWidgetBundle } from '../lib/widget';
 import type { Flow, Theme, Option } from '../types';
 import { BasicSettings } from './ChatbotBuilder/BasicSettings';
-import { FlowBuilder } from './ChatbotBuilder/FlowBuilder';
 import { FlowBuilder2 } from './ChatbotBuilder/FlowBuilder2';
 import { ProactiveMessages } from './ChatbotBuilder/ProactiveMessages';
 
 export default function ChatbotBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'basic' | 'flow' | 'flow2' | 'proactive'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'flow' | 'proactive'>('basic');
   const [chatbotName, setChatbotName] = useState<string>('Default Chatbot');
   const [showEndScreen, setShowEndScreen] = useState(false);
   const [proactiveMessages, setProactiveMessages] = useState<{
@@ -71,52 +71,75 @@ export default function ChatbotBuilder() {
   });
 
   useEffect(() => {
-    // Load saved data from localStorage
-    const savedData = localStorage.getItem('chatbot-builder');
-    if (savedData) {
-      const data = JSON.parse(savedData);
-      setChatbotName(data.chatbotName);
-      setWelcomeMessage(data.welcomeMessage);
-      setEndMessage(data.endMessage);
-      setShowEndScreen(data.showEndScreen || false);
-      setProactiveMessages(data.proactiveMessages);
-      setOptions(data.options);
-      setTheme(data.theme);
+    const loadConfig = async () => {
+      try {
+        setLoading(true);
+        
+        // First get the chatbot configuration
+        const { data: chatbotData, error: chatbotError } = await supabase
+          .from('chatbots')
+          .select('name, settings')
+          .eq('user_id', user?.id)
+          .single();
+
+        if (chatbotError) throw chatbotError;
+
+        if (chatbotData) {
+          setChatbotName(chatbotData.name);
+          if (chatbotData.settings?.theme) {
+            setTheme(chatbotData.settings.theme);
+          }
+          if (chatbotData.settings?.welcomeMessage) {
+            setWelcomeMessage(chatbotData.settings.welcomeMessage);
+          }
+          if (chatbotData.settings?.proactiveMessages) {
+            setProactiveMessages(chatbotData.settings.proactiveMessages);
+          }
+        }
+
+        // Then get the latest flow configuration
+        const { data: flowData, error: flowError } = await supabase
+          .from('flows')
+          .select('data')
+          .eq('chatbot_id', user?.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (flowError && flowError.code !== 'PGRST116') throw flowError;
+
+        if (flowData) {
+          setEndMessage(flowData.data.endMessage);
+          setShowEndScreen(flowData.data.showEndScreen);
+          setOptions(flowData.data.options);
+        }
+      } catch (error) {
+        console.error('Error loading configuration:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, []);
+
+    if (user?.id) {
+      loadConfig();
+    }
+  }, [user?.id]);
 
   const handleSave = async () => {
     setSaving(true);
     setError(null);
-    const chatbotId = 'a54a2bd1-cf6a-4af7-8435-c256c10794e7';
-    
-    // Create flow object for widget generation
-    const flow = {
-      welcomeMessage,
-      endMessage,
-      showEndScreen,
-      proactiveMessages,
-      options
-    };
-    
-    const widgetBundle = generateWidgetBundle(user?.id || '', theme, flow);
     
     try {
-      localStorage.setItem('chatbot-builder', JSON.stringify({
-        chatbotName,
-        welcomeMessage,
-        endMessage,
-        showEndScreen,
-        proactiveMessages,
-        options,
-        theme
-      }));
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
 
       // First create or update the chatbot
       const { data: chatbotData, error: botError } = await supabase
         .from('chatbots')
         .upsert({
-          user_id: user?.id,
+          id: user.id, // Use user ID as chatbot ID
+          user_id: user.id,
           name: chatbotName,
           settings: {
             theme,
@@ -132,73 +155,85 @@ export default function ChatbotBuilder() {
         throw new Error(botError.message);
       }
 
-      // Then save flow configuration using the chatbot ID
-      const { error: flowError } = await supabase
-        .from('flows')
-        .insert({
-          chatbot_id: chatbotData.id,
-          data: {
+      // Save widget configuration
+      const { error: configError } = await supabase
+        .from('widget_configs')
+        .upsert({
+          chatbot_id: user.id,
+          theme,
+          flow: {
             welcomeMessage,
             endMessage,
             showEndScreen,
             proactiveMessages,
             options
           }
+        }, {
+          onConflict: 'chatbot_id'
         });
 
-      if (flowError) {
-        console.error('Flow save error:', flowError);
-        throw new Error(flowError.message);
-      }
+        if (configError) {
+          console.error('Widget config save error:', configError);
+          throw new Error(configError.message);
+        }
 
-      // Create customer folder if it doesn't exist
-      const folderPath = `${chatbotId}/`;
-      const { data: existingFiles } = await supabase.storage
-        .from('widget-files')
-        .list(folderPath);
+        // Generate widget bundle
+        const widgetBundle = generateWidgetBundle(user.id, theme, {
+          welcomeMessage,
+          endMessage,
+          showEndScreen,
+          proactiveMessages,
+          options
+        });
 
-      // Delete old widget file if it exists
-      if (existingFiles?.some(file => file.name === 'widget')) {
-        const { error: deleteError } = await supabase.storage
+        // Create customer folder if it doesn't exist
+        const folderPath = `${user.id}/`;
+        const { data: existingFiles } = await supabase.storage
           .from('widget-files')
-          .remove([`${folderPath}widget`]);
+          .list(folderPath);
 
-        if (deleteError) throw deleteError;
+        // Delete old widget file if it exists
+        if (existingFiles?.some(file => file.name === 'widget')) {
+          const { error: deleteError } = await supabase.storage
+            .from('widget-files')
+            .remove([`${folderPath}widget`]);
+
+          if (deleteError) throw deleteError;
+        }
+
+        // Save widget files to storage
+        const { error: widgetError } = await supabase.storage
+          .from('widget-files')
+          .upload(`${user.id}/widget`, widgetBundle, {
+            contentType: 'application/javascript',
+            upsert: true
+          });
+
+        if (widgetError) throw widgetError;
+
+        console.log('Chatbot configuration saved successfully');
+        
+        // Get the widget URL
+        const { data: publicUrl } = supabase
+          .storage
+          .from('widget-files')
+          .getPublicUrl(`${user.id}/widget`);
+
+        console.log('Widget URL:', publicUrl.publicUrl);
+        setError(null);
+
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        console.error('Full error:', err);
+      } finally {
+        setSaving(false);
       }
-
-      // Save widget files to storage
-      const { error: widgetError } = await supabase.storage
-        .from('widget-files')
-        .upload(`${folderPath}widget`, widgetBundle, {
-          contentType: 'application/javascript',
-          upsert: true
-        });
-
-      if (widgetError) throw widgetError;
-
-      console.log('Chatbot configuration saved successfully');
-      
-      // Get the widget URL
-      const { data: publicUrl } = supabase
-        .storage
-        .from('widget-files')
-        .getPublicUrl(`${chatbotId}/widget`);
-
-      console.log('Widget URL:', publicUrl.publicUrl);
-      setError(null);
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      console.error('Full error:', err);
-    } finally {
-      setSaving(false);
-    }
   };
 
   return (
     <>
       {/* Fixed Top Nav */}
-      <div className="fixed top-0 left-20 right-0 h-10 bg-dark-800 border-b border-gray-800 z-[45]">
+      <div className="fixed top-0 left-20 right-0 h-10 bg-dark-800 border-b border-gray-400/10 z-[45]">
         <div className="h-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <div className="flex items-center">
@@ -223,17 +258,6 @@ export default function ChatbotBuilder() {
               >
                 <MessageSquarePlus className="w-4 h-4" />
                 <span>Flow Builder</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('flow2')}
-                className={`flex items-center space-x-2 px-4 h-10 text-sm font-medium transition-colors border-b-2 -mb-[1px]
-                  ${activeTab === 'flow2'
-                    ? 'border-brand text-brand'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
-                  }`}
-              >
-                <MessageSquarePlus className="w-4 h-4" />
-                <span>Flow Builder 2.0</span>
               </button>
               <button
                 onClick={() => setActiveTab('proactive')}
@@ -313,21 +337,6 @@ export default function ChatbotBuilder() {
             saving={saving}
           />
         ) : activeTab === 'flow' ? (
-          <FlowBuilder
-            welcomeMessage={welcomeMessage}
-            setWelcomeMessage={setWelcomeMessage}
-            endMessage={endMessage}
-            setEndMessage={setEndMessage}
-            showEndScreen={showEndScreen}
-            setShowEndScreen={setShowEndScreen}
-            proactiveMessages={proactiveMessages}
-            setProactiveMessages={setProactiveMessages}
-            options={options}
-            setOptions={setOptions}
-            theme={theme}
-            chatbotName={chatbotName}
-          />
-        ) : activeTab === 'flow2' ? (
           <FlowBuilder2
             welcomeMessage={welcomeMessage}
             setWelcomeMessage={setWelcomeMessage}

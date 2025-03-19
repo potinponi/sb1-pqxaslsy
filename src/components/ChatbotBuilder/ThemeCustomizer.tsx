@@ -114,9 +114,9 @@ export function ThemeCustomizer({
 
   return (
     <div className="h-full">
-      <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 h-full flex flex-col">
+      <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-400/10 h-full flex flex-col">
         {/* Tabs */}
-        <div className="flex border-b border-gray-800 min-w-[280px]">
+        <div className="flex border-b border-gray-400/10 min-w-[280px]">
           <button
             onClick={() => setActiveTab('basic')}
             className={`flex-1 px-3 py-2 text-sm font-medium border-b-2 transition-colors
@@ -683,7 +683,7 @@ export function ThemeCustomizer({
           )}
         </div>
         
-        <div className="p-3 border-t border-gray-800 bg-dark-800 sticky bottom-0">
+        <div className="p-3 border-t border-gray-400/10 bg-dark-800 sticky bottom-0">
           <div className="space-y-2">
             <button
               onClick={handleSave}

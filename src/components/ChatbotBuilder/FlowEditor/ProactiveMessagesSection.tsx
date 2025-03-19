@@ -32,7 +32,7 @@ export function ProactiveMessagesSection({
   return (
     <div 
       onClick={() => setIsExpanded(!isExpanded)}
-      className="group bg-dark-700/50 hover:bg-dark-700/80 transition-colors rounded-lg border border-gray-800"
+      className="group bg-dark-700/50 hover:bg-dark-700/80 transition-colors rounded-lg border border-gray-400/10"
     >
       <div className="p-4 flex items-center justify-between cursor-move drag-handle">
         <div className="flex items-center space-x-3">
@@ -48,7 +48,7 @@ export function ProactiveMessagesSection({
       </div>
       
       {isExpanded && (
-        <div className="px-4 pb-4 border-t border-gray-800 mt-2 pt-4">
+        <div className="px-4 pb-4 border-t border-gray-400/10 mt-2 pt-4">
           <div className="space-y-4 pl-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -150,7 +150,7 @@ export function ProactiveMessagesSection({
               </div>
             </div>
             
-            <div className="mt-6 pt-4 border-t border-gray-700">
+            <div className="mt-6 pt-4 border-t border-gray-400/10">
               <div className="flex items-center justify-between">
                 <span className="text-gray-100">Enable time-based messages</span>
                 <div 

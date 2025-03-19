@@ -15,7 +15,7 @@ export function EndMessageSection({
   setShowEndScreen
 }: EndMessageSectionProps) {
   return (
-    <div className="p-6 bg-dark-700/30 hover:bg-dark-700/60 transition-colors rounded-lg border border-gray-800">
+    <div className="p-6 bg-dark-700/30 hover:bg-dark-700/60 transition-colors rounded-lg border border-gray-400/10">
       <div className="flex items-center space-x-2 mb-4">
         <MessageCircle className="w-5 h-5 text-brand" />
         <h2 className="text-base font-medium text-gray-100">End Message</h2>

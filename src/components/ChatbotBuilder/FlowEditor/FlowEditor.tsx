@@ -37,7 +37,7 @@ export function FlowEditor({
   setOptions
 }: FlowEditorProps) {
   return (
-    <div className="bg-dark-800/50 rounded-lg shadow-lg space-y-6">
+    <div className="bg-dark-800/50 rounded-lg shadow-lg border border-gray-400/10 space-y-6">
       <WelcomeSection
         welcomeMessage={welcomeMessage}
         setWelcomeMessage={setWelcomeMessage}

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
-import { Plus, Minus, RotateCcw, MessageCircle, Settings, ArrowRight } from 'lucide-react';
+import { Plus, Minus, RotateCcw, MessageCircle, Settings, ArrowRight, Eye, EyeOff, Calendar, X } from 'lucide-react';
 import type { Flow, Theme, Option, NodePosition } from '../../types';
 
 interface NodeRefs {
@@ -27,6 +27,8 @@ function FlowBuilder2({
   setWelcomeMessage,
   endMessage,
   setEndMessage,
+  showEndScreen,
+  setShowEndScreen,
   options,
   setOptions,
   theme
@@ -38,6 +40,9 @@ function FlowBuilder2({
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [editingOption, setEditingOption] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showEnd, setShowEnd] = useState(true);
+  const [showOptions, setShowOptions] = useState(true);
   const nodeRefs = useRef<NodeRefs>({
     welcome: React.createRef(),
     end: React.createRef(),
@@ -155,6 +160,36 @@ function FlowBuilder2({
 
   return (
     <div className="h-[calc(100vh-96px)] bg-dark-900 overflow-hidden">
+      {/* Controls */}
+      <div className="absolute top-4 left-4 z-10 flex items-center space-x-4 bg-dark-800/90 backdrop-blur-sm rounded-lg p-2 border border-gray-800">
+        <button
+          onClick={() => setShowWelcome(!showWelcome)}
+          className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm transition-colors
+            ${showWelcome ? 'bg-brand text-black' : 'bg-dark-700 text-gray-400 hover:text-brand'}`}
+        >
+          {showWelcome ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          <span>Welcome</span>
+        </button>
+        
+        <button
+          onClick={() => setShowEnd(!showEnd)}
+          className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm transition-colors
+            ${showEnd ? 'bg-brand text-black' : 'bg-dark-700 text-gray-400 hover:text-brand'}`}
+        >
+          {showEnd ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          <span>End</span>
+        </button>
+        
+        <button
+          onClick={() => setShowOptions(!showOptions)}
+          className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm transition-colors
+            ${showOptions ? 'bg-brand text-black' : 'bg-dark-700 text-gray-400 hover:text-brand'}`}
+        >
+          {showOptions ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          <span>Options</span>
+        </button>
+      </div>
+
       {/* Canvas */}
       <div 
         ref={containerRef}
@@ -199,7 +234,8 @@ function FlowBuilder2({
               {renderConnections()}
             </svg>
 
-            {/* Welcome Message Node */}
+            {/* Welcome Message Node - Only show if enabled */}
+            {showWelcome && (
             <Draggable
               position={getNodePosition('welcome')}
               nodeRef={nodeRefs.current.welcome}
@@ -234,9 +270,11 @@ function FlowBuilder2({
                 </div>
               </div>
             </Draggable>
+            )}
 
-            {/* Options */}
-            {options.map((option, index) => (
+            {/* Options - Only show if enabled */}
+            {showOptions && (
+            options.map((option, index) => (
               <Draggable
                 key={option.id}
                 nodeRef={nodeRefs.current[option.id]}
@@ -273,12 +311,12 @@ function FlowBuilder2({
                       {option.flow.map((question, qIndex) => (
                         <div 
                           key={question.id}
-                          className="flex items-center space-x-2 p-3 bg-dark-700 rounded-lg border border-gray-700"
+                          className="relative flex items-start space-x-2 p-3 bg-dark-700 rounded-lg border border-gray-700"
                         >
                           <span className="w-6 h-6 flex items-center justify-center rounded-full bg-dark-600 text-xs text-gray-400">
                             {qIndex + 1}
                           </span>
-                          <div className="flex-1 space-y-2">
+                          <div className="flex-1 space-y-2 min-w-0">
                             <input
                               type="text"
                               value={question.label}
@@ -292,7 +330,7 @@ function FlowBuilder2({
                               }}
                               className="w-full bg-transparent border-none text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-brand rounded px-1"
                             />
-                            <div className="flex items-center space-x-4">
+                            <div className="flex flex-wrap items-center gap-2">
                               <select
                                 value={question.type}
                                 onChange={(e) => {
@@ -318,36 +356,169 @@ function FlowBuilder2({
                                 <option value="text">Text</option>
                                 <option value="email">Email</option>
                                 <option value="phone">Phone</option>
+                                <option value="calendar">Calendar Integration</option>
                               </select>
-                              <label className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  checked={question.required}
-                                  onChange={(e) => {
-                                    const newOptions = [...options];
-                                    newOptions[index].flow[qIndex] = {
-                                      ...question,
-                                      required: e.target.checked
-                                    };
-                                    setOptions(newOptions);
-                                  }}
-                                  className="rounded border-gray-600 bg-dark-600 text-brand focus:ring-brand"
-                                />
-                                <span className="text-xs text-gray-400">Required</span>
-                              </label>
-                              <button
-                                onClick={() => {
+                              
+                              {question.type === 'calendar' && (
+                                <div className="w-full space-y-3 mt-3 p-3 bg-dark-800 rounded-lg border border-gray-700">
+                                  <div>
+                                    <label className="block text-xs text-gray-400 mb-1">Calendar Provider</label>
+                                    <select
+                                      value={question.calendar?.provider || 'google'}
+                                      onChange={(e) => {
+                                        const newOptions = [...options];
+                                        newOptions[index].flow[qIndex] = {
+                                          ...question,
+                                          calendar: {
+                                            ...question.calendar,
+                                            provider: e.target.value as 'google' | 'outlook' | 'calendly'
+                                          }
+                                        };
+                                        setOptions(newOptions);
+                                      }}
+                                      className="w-full text-xs bg-dark-900 border border-gray-700 rounded px-2 py-1 
+                                        text-gray-300 focus:border-brand focus:ring-brand"
+                                    >
+                                      <option value="google">Google Calendar</option>
+                                      <option value="outlook">Outlook Calendar</option>
+                                      <option value="calendly">Calendly</option>
+                                    </select>
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="block text-xs text-gray-400 mb-1">Meeting Duration (minutes)</label>
+                                    <input
+                                      type="number"
+                                      min="15"
+                                      step="15"
+                                      value={question.calendar?.duration || 30}
+                                      onChange={(e) => {
+                                        const newOptions = [...options];
+                                        newOptions[index].flow[qIndex] = {
+                                          ...question,
+                                          calendar: {
+                                            ...question.calendar,
+                                            duration: parseInt(e.target.value)
+                                          }
+                                        };
+                                        setOptions(newOptions);
+                                      }}
+                                      className="w-full text-xs bg-dark-900 border border-gray-700 rounded px-2 py-1 
+                                        text-gray-300 focus:border-brand focus:ring-brand"
+                                    />
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="block text-xs text-gray-400 mb-1">Available Hours</label>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      <input
+                                        type="time"
+                                        value={question.calendar?.availableHours?.start || "09:00"}
+                                        onChange={(e) => {
+                                          const newOptions = [...options];
+                                          newOptions[index].flow[qIndex] = {
+                                            ...question,
+                                            calendar: {
+                                              ...question.calendar,
+                                              availableHours: {
+                                                ...question.calendar?.availableHours,
+                                                start: e.target.value
+                                              }
+                                            }
+                                          };
+                                          setOptions(newOptions);
+                                        }}
+                                        className="w-28 text-xs bg-dark-900 border border-gray-700 rounded px-2 py-1 
+                                          text-gray-300 focus:border-brand focus:ring-brand"
+                                      />
+                                      <span className="text-xs text-gray-400">to</span>
+                                      <input
+                                        type="time"
+                                        value={question.calendar?.availableHours?.end || "17:00"}
+                                        onChange={(e) => {
+                                          const newOptions = [...options];
+                                          newOptions[index].flow[qIndex] = {
+                                            ...question,
+                                            calendar: {
+                                              ...question.calendar,
+                                              availableHours: {
+                                                ...question.calendar?.availableHours,
+                                                end: e.target.value
+                                              }
+                                            }
+                                          };
+                                          setOptions(newOptions);
+                                        }}
+                                        className="w-28 text-xs bg-dark-900 border border-gray-700 rounded px-2 py-1 
+                                          text-gray-300 focus:border-brand focus:ring-brand"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="block text-xs text-gray-400 mb-2">Available Days</label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                                        <label key={day} className="flex items-center space-x-1">
+                                          <input
+                                            type="checkbox"
+                                            checked={question.calendar?.availableDays?.includes(day) ?? false}
+                                            onChange={(e) => {
+                                              const newOptions = [...options];
+                                              const currentDays = question.calendar?.availableDays || [];
+                                              const updatedDays = e.target.checked
+                                                ? [...currentDays, day]
+                                                : currentDays.filter(d => d !== day);
+                                              
+                                              newOptions[index].flow[qIndex] = {
+                                                ...question,
+                                                calendar: {
+                                                  ...question.calendar,
+                                                  availableDays: updatedDays
+                                                }
+                                              };
+                                              setOptions(newOptions);
+                                            }}
+                                            className="rounded border-gray-600 bg-dark-600 text-brand focus:ring-brand"
+                                          />
+                                          <span className="text-xs text-gray-400 capitalize">{day.slice(0,3)}</span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end space-y-2">
+                            <button
+                              onClick={() => {
+                                const newOptions = [...options];
+                                newOptions[index].flow = option.flow.filter(
+                                  (_, i) => i !== qIndex
+                                );
+                                setOptions(newOptions);
+                              }}
+                              className="p-1 hover:bg-dark-600 rounded text-gray-400 hover:text-red-400 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={question.required}
+                                onChange={(e) => {
                                   const newOptions = [...options];
-                                  newOptions[index].flow = option.flow.filter(
-                                    (_, i) => i !== qIndex
-                                  );
+                                  newOptions[index].flow[qIndex] = {
+                                    ...question,
+                                    required: e.target.checked
+                                  };
                                   setOptions(newOptions);
                                 }}
-                                className="text-xs text-red-400 hover:text-red-300"
-                              >
-                                Remove
-                              </button>
-                            </div>
+                                className="rounded border-gray-600 bg-dark-600 text-brand focus:ring-brand"
+                              />
+                              <span className="text-xs text-gray-400">Required</span>
+                            </label>
                           </div>
                         </div>
                       ))}
@@ -372,9 +543,11 @@ function FlowBuilder2({
                   </div>
                 </div>
               </Draggable>
-            ))}
+            ))
+            )}
 
-            {/* End Message Node */}
+            {/* End Message Node - Only show if enabled */}
+            {showEnd && (
             <Draggable
               position={getNodePosition('end')}
               nodeRef={nodeRefs.current.end}
@@ -406,9 +579,19 @@ function FlowBuilder2({
                   <p className="text-xs text-gray-500">
                     This message will be shown after all questions are answered
                   </p>
+                  <div className="flex items-center space-x-2 pt-2">
+                    <input
+                      type="checkbox"
+                      checked={showEndScreen}
+                      onChange={(e) => setShowEndScreen(e.target.checked)}
+                      className="rounded border-gray-600 bg-dark-600 text-brand focus:ring-brand"
+                    />
+                    <span className="text-xs text-gray-400">Show end screen</span>
+                  </div>
                 </div>
               </div>
             </Draggable>
+            )}
           </div>
         </div>
       </div>
@@ -445,6 +628,5 @@ function FlowBuilder2({
     </div>
   );
 }
-
 
 export { FlowBuilder2 }

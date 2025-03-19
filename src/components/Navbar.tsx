@@ -31,7 +31,7 @@ const Navbar = () => {
         ${isExpanded ? 'w-64' : 'w-20'}
         z-50
         transition-all duration-300 ease-in-out
-        border-r border-gray-800`}
+        border-r border-gray-400/10`}
     >
       <div className="flex flex-col items-center justify-start p-4 h-full">
         {/* Logo */}

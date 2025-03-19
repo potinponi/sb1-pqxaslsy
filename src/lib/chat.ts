@@ -32,6 +32,37 @@ export function useChat(chatbotId: string) {
     setIsTyping(false);
   };
 
+  const fetchFlow = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('flows')
+        .select('*')
+        .eq('chatbot_id', chatbotId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (!validateFlow(data)) {
+        throw new Error('Invalid flow configuration');
+      }
+
+      setFlow(data);
+      // Show welcome message and initial options prompt
+      setMessages([
+        {
+          id: 'welcome',
+          content: data?.data.welcomeMessage || 'Hello! 👋 How can I help you today?',
+          sender: 'bot'
+        }
+      ]);
+
+    } catch (error) {
+      console.error('Error fetching flow:', error);
+    }
+  };
+
   const submitLead = async (answers: Record<string, string>, fetchLocation: () => Promise<any>) => {
     setSubmitting(true);
     try {

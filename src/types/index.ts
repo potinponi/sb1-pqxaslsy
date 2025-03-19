@@ -58,6 +58,18 @@ export interface Lead {
 }
 
 /**
+ * Represents a chat interaction event
+ */
+export interface ChatInteraction {
+  id: string;
+  chatbot_id: string;
+  type: 'open' | 'close' | 'start_flow';
+  session_id: string;
+  converted: boolean;
+  created_at: string;
+}
+
+/**
  * Represents a node position in the flow builder
  */
 export interface NodePosition {
@@ -111,7 +123,7 @@ export interface Theme {
 export interface Question {
   id: string;
   /** Type of input field to display */
-  type: 'text' | 'email' | 'phone' | 'option' | 'name';
+  type: 'text' | 'email' | 'phone' | 'option' | 'name' | 'calendar';
   /** Purpose of the question for categorization */
   purpose?: 'name' | 'contact' | 'additional';
   /** Question text shown to the user */
@@ -120,6 +132,16 @@ export interface Question {
   required: boolean;
   /** Available options for 'option' type questions */
   options?: string[];
+  /** Calendar integration settings */
+  calendar?: {
+    provider: 'google' | 'outlook' | 'calendly';
+    duration: number; // Meeting duration in minutes
+    availableDays: string[]; // Array of days like ['monday', 'tuesday']
+    availableHours: {
+      start: string; // Format: "HH:mm"
+      end: string; // Format: "HH:mm"
+    };
+  };
 }
 
 /**

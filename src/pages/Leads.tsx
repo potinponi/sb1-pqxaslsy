@@ -234,7 +234,7 @@ export function Leads() {
         </div>
       )}
       <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800">
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-gray-400/10">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -351,9 +351,9 @@ export function Leads() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-400 relative">
                       {selectedLead?.id === lead.id ? (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                          <div className="bg-dark-800 rounded-lg shadow-xl border border-gray-700 w-full max-w-2xl max-h-[80vh] overflow-hidden">
-                            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+                          <div className="bg-dark-800 rounded-lg shadow-xl border border-gray-400/10 w-full max-w-2xl max-h-[80vh] overflow-hidden">
+                            <div className="p-4 border-b border-gray-400/10 flex justify-between items-center">
                               <h3 className="text-lg font-medium text-gray-100">Lead Details</h3>
                               <button
                                 onClick={(e) => {
@@ -454,7 +454,7 @@ export function Leads() {
           
           {/* Pagination Controls */}
           {filteredLeads.length > leadsPerPage && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-400/10">
               <div className="text-sm text-gray-400">
                 Showing {indexOfFirstLead + 1} to {Math.min(indexOfLastLead, filteredLeads.length)} of {filteredLeads.length} leads
               </div>

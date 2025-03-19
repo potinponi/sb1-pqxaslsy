@@ -16,7 +16,7 @@ interface ChatWidgetProps {
   /** Unique identifier for the chatbot instance */
   chatbotId: string;
   /** Display name shown in the widget header */
-  chatbotName?: string;
+  chatbotName: string;
   /** Optional flow configuration for preview mode */
   previewFlow?: {
     id?: string;
@@ -63,12 +63,13 @@ interface ChatWidgetProps {
  * - Validating inputs
  * - Submitting leads to the database
  */
-export function ChatWidget({ chatbotId, chatbotName = 'Chat with us', previewFlow, theme, defaultOpen = false }: ChatWidgetProps) {
+export function ChatWidget({ chatbotId, chatbotName, previewFlow, theme, defaultOpen = false }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isClosing, setIsClosing] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [subscriptionActive, setSubscriptionActive] = useState(true);
+  const isPreview = chatbotId === '00000000-0000-0000-0000-000000000000';
   
   const defaultTheme = {
     primaryColor: '#a7e154',
@@ -101,6 +102,23 @@ export function ChatWidget({ chatbotId, chatbotName = 'Chat with us', previewFlo
 
     checkSubscription();
   }, []);
+
+  const trackInteraction = async (type: 'open' | 'close' | 'start_flow') => {
+    try {
+      // Don't track interactions for preview chatbot
+      if (isPreview) return;
+      
+      const sessionId = Math.random().toString(36).substring(2);
+      await supabase.from('chat_interactions').insert({
+        chatbot_id,
+        type,
+        session_id: sessionId,
+        converted: completed
+      });
+    } catch (error) {
+      console.error('Error tracking interaction:', error);
+    }
+  };
 
   if (!subscriptionActive) {
     return (
@@ -254,6 +272,7 @@ export function ChatWidget({ chatbotId, chatbotName = 'Chat with us', previewFlo
       if (selectedOptionData) {
         setSelectedOption(selectedOptionData.id);
         setCurrentQuestionIndex(0);
+        trackInteraction('start_flow');
         
         // Initialize answers with the selected option
         setAnswers({ 'Flow Option': selectedOptionData.label });
@@ -351,6 +370,9 @@ export function ChatWidget({ chatbotId, chatbotName = 'Chat with us', previewFlo
 
   const handleFeedback = async (satisfied: boolean) => {
     try {
+      // Don't save feedback for preview chatbot
+      if (isPreview) return;
+      
       // Save feedback to database
       const { error } = await supabase
         .from('feedback')
@@ -423,6 +445,7 @@ export function ChatWidget({ chatbotId, chatbotName = 'Chat with us', previewFlo
           onClick={() => {
             if (isOpen) {
               setIsSpinning(true);
+              trackInteraction('close');
               setIsClosing(true);
               setTimeout(() => {
                 setIsOpen(false);
@@ -431,6 +454,7 @@ export function ChatWidget({ chatbotId, chatbotName = 'Chat with us', previewFlo
               }, 800);
             } else {
               setIsOpen(true);
+              trackInteraction('open');
             }
             if (!isOpen && showProactiveBubble) {
               setShowProactiveBubble(false);

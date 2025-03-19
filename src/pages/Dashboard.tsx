@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MessageSquarePlus, Users, BarChart3, Loader2, PhoneCall, Mail } from 'lucide-react';
+import { MessageSquarePlus, Users, BarChart3, Loader2, PhoneCall, Mail, Bell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useSubscription } from '../lib/subscription';
@@ -19,6 +19,7 @@ interface Stats {
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { status } = useSubscription();
@@ -34,6 +35,31 @@ export default function Dashboard() {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  const fetchNewLeadsCount = async () => {
+    try {
+      const { data: userData, error: userError } = await supabase
+        .from('auth')
+        .select('last_login')
+        .eq('id', user?.id)
+        .single();
+
+      if (userError) throw userError;
+
+      const { data: newLeads, error: leadsError } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('chatbot_id', user?.id)
+        .gt('created_at', userData.last_login)
+        .count();
+
+      if (leadsError) throw leadsError;
+      
+      setNewLeadsCount(newLeads?.count || 0);
+    } catch (error) {
+      console.error('Error fetching new leads count:', error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -92,7 +118,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold text-gray-100 mb-6">Dashboard</h1>
       
       {status === 'expired' && (
-        <div className="mb-8 p-6 bg-red-500/10 border border-red-500/50 rounded-lg">
+        <div className="mb-8 p-6 bg-red-500/10 border border-gray-400/10 rounded-lg">
           <h2 className="text-lg font-medium text-red-400 mb-2">Trial Period Expired</h2>
           <p className="text-gray-400 mb-4">
             Your trial period has ended. Upgrade to Pro to continue using all features and keep your chatbot active.
@@ -108,7 +134,7 @@ export default function Dashboard() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map(({ label, value, icon: Icon }) => (
-          <div key={label} className="bg-dark-800 rounded-lg shadow-lg border border-gray-800 p-6">
+          <div key={label} className="bg-dark-800 rounded-lg shadow-lg border border-gray-400/10 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">{label}</p>
@@ -122,15 +148,23 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-800">
+      <div className="bg-dark-800 rounded-lg shadow-lg border border-gray-400/10">
         <div className="p-6">
           <h2 className="text-lg font-medium text-gray-100 mb-4">
-            Quick Actions
+            <div className="flex items-center justify-between">
+              <span>Quick Actions</span>
+              {newLeadsCount > 0 && (
+                <div className="flex items-center space-x-2 px-3 py-1 bg-brand/10 text-brand rounded-full text-sm">
+                  <Bell className="w-4 h-4" />
+                  <span>{newLeadsCount} new {newLeadsCount === 1 ? 'lead' : 'leads'}</span>
+                </div>
+              )}
+            </div>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               to="/builder"
-              className="flex items-center space-x-3 p-4 rounded-lg bg-dark-700 border border-gray-800 hover:border-brand hover:text-brand transition-colors"
+              className="flex items-center space-x-3 p-4 rounded-lg bg-dark-700 border border-gray-400/10 hover:border-brand hover:text-brand transition-colors"
             >
               <MessageSquarePlus className="w-6 h-6" />
               <div>
@@ -142,7 +176,7 @@ export default function Dashboard() {
             </Link>
             <Link
               to="/leads"
-              className="flex items-center space-x-3 p-4 rounded-lg bg-dark-700 border border-gray-800 hover:border-brand hover:text-brand transition-colors"
+              className="flex items-center space-x-3 p-4 rounded-lg bg-dark-700 border border-gray-400/10 hover:border-brand hover:text-brand transition-colors"
             >
               <Users className="w-6 h-6" />
               <div>
@@ -154,7 +188,7 @@ export default function Dashboard() {
             </Link>
             <Link
               to="/analytics"
-              className="flex items-center space-x-3 p-4 rounded-lg bg-dark-700 border border-gray-800 hover:border-brand hover:text-brand transition-colors"
+              className="flex items-center space-x-3 p-4 rounded-lg bg-dark-700 border border-gray-400/10 hover:border-brand hover:text-brand transition-colors"
             >
               <BarChart3 className="w-6 h-6" />
               <div>
